@@ -1,0 +1,30 @@
+{
+  "fixture_path": "tests/fixtures/sample_stock_data.csv",
+  "selection": {
+    "end_date": "1980-12-31",
+    "max_rows": 2500,
+    "start_date": "1980-01-01",
+    "symbols": [
+      "ED",
+      "CVX",
+      "GD",
+      "BP",
+      "IBM",
+      "KO"
+    ]
+  },
+  "source_path": "/mnt/nfs-lithium-public/rkj/all_stock_data.csv",
+  "summary": {
+    "end_date": "1980-12-31",
+    "rows": 1518,
+    "rows_per_ticker": {
+      "BP": 253,
+      "CVX": 253,
+      "ED": 253,
+      "GD": 253,
+      "IBM": 253,
+      "KO": 253
+    },
+    "start_date": "1980-01-02"
+  }
+}
