@@ -1,0 +1,51 @@
+from __future__ import annotations
+
+from stocker.engine.portfolio import Portfolio, RebalanceCosts
+
+
+def test_contribution_updates_cash_and_cumulative_amount() -> None:
+    p = Portfolio(initial_cash=10_000.0)
+    p.contribute(500.0)
+
+    assert p.cash == 10_500.0
+    assert p.cumulative_contributions == 500.0
+
+
+def test_rebalance_from_cash_to_equal_weights_without_costs() -> None:
+    p = Portfolio(initial_cash=1_000.0)
+    fills = p.rebalance_to_weights(
+        target_weights={"AAA": 0.5, "BBB": 0.5},
+        prices={"AAA": 10.0, "BBB": 20.0},
+        costs=RebalanceCosts(),
+    )
+
+    assert len(fills) == 2
+    assert round(p.holdings["AAA"], 6) == 50.0
+    assert round(p.holdings["BBB"], 6) == 25.0
+    assert abs(p.cash) < 1e-9
+
+
+def test_rebalance_applies_transaction_costs() -> None:
+    p = Portfolio(initial_cash=1_000.0)
+    p.rebalance_to_weights(
+        target_weights={"AAA": 1.0},
+        prices={"AAA": 10.0},
+        costs=RebalanceCosts(fee_bps=10.0, fee_fixed=1.0, slippage_bps=5.0),
+    )
+
+    assert p.holdings["AAA"] > 0
+    assert p.cash < 0
+    assert p.cumulative_costs > 0
+
+
+def test_total_equity_matches_cash_plus_market_value() -> None:
+    p = Portfolio(initial_cash=500.0)
+    p.rebalance_to_weights(
+        target_weights={"AAA": 1.0},
+        prices={"AAA": 10.0},
+        costs=RebalanceCosts(),
+    )
+
+    equity = p.total_equity({"AAA": 11.0})
+    assert abs(equity - (p.cash + p.total_market_value({"AAA": 11.0}))) < 1e-9
+
