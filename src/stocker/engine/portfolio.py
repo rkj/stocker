@@ -32,6 +32,7 @@ class Portfolio:
     holdings: dict[str, float] = field(default_factory=dict)
     cumulative_contributions: float = 0.0
     cumulative_costs: float = 0.0
+    cumulative_dividends: float = 0.0
 
     def __post_init__(self) -> None:
         if self.initial_cash < 0:
@@ -55,6 +56,18 @@ class Portfolio:
 
     def total_equity(self, prices: dict[str, float]) -> float:
         return self.cash + self.total_market_value(prices)
+
+    def apply_dividends(self, dividends_per_share: dict[str, float]) -> float:
+        """Credit dividend cash for currently held shares."""
+        total = 0.0
+        for symbol, shares in self.holdings.items():
+            div = dividends_per_share.get(symbol, 0.0)
+            if shares > 0 and div > 0:
+                total += shares * div
+        if total > 0:
+            self.cash += total
+            self.cumulative_dividends += total
+        return total
 
     def rebalance_to_weights(
         self,
@@ -138,4 +151,3 @@ def _build_fill(
         total_cost=total_cost,
         net_cash_impact=net_cash_impact,
     )
-

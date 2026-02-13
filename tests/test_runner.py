@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import csv
 from datetime import date
 from pathlib import Path
 
@@ -83,3 +84,40 @@ def test_monthly_contribution_is_applied_on_first_trading_day_of_month() -> None
     final = result.daily_records_by_strategy["eq_daily"][-1]
     assert final.cumulative_contributions == 200.0
 
+
+def test_dividends_are_credited_to_portfolio_cash(tmp_path: Path) -> None:
+    csv_path = tmp_path / "dividends.csv"
+    with csv_path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(
+            ["Date", "Ticker", "Open", "High", "Low", "Close", "Volume", "Dividends", "Stock Splits"]
+        )
+        writer.writerow(["2020-01-02", "AAA", 10, 10, 10, 10, 100, 0, 0])
+        writer.writerow(["2020-01-03", "AAA", 10, 10, 10, 10, 100, 1, 0])
+
+    market = load_market_data(
+        input_path=csv_path,
+        start_date=date(2020, 1, 2),
+        end_date=date(2020, 1, 3),
+    )
+    result = run_simulation(
+        market=market,
+        strategy_specs=[
+            {
+                "strategy_id": "aaa",
+                "type": "explicit_symbols",
+                "params": {"symbols": ["AAA"]},
+            }
+        ],
+        settings=RunSettings(
+            initial_capital=1000.0,
+            contribution_amount=0.0,
+            contribution_frequency=ContributionFrequency.NONE,
+            fee_bps=0.0,
+            fee_fixed=0.0,
+            slippage_bps=0.0,
+        ),
+    )
+    final = result.daily_records_by_strategy["aaa"][-1]
+    assert final.cumulative_dividends == 100.0
+    assert final.total_equity == 1100.0

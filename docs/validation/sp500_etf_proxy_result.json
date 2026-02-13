@@ -1,0 +1,13 @@
+{
+  "annualized_volatility": 0.18658212161480223,
+  "cagr": 0.12698629154644903,
+  "cumulative_dividends": 48940.80320135677,
+  "end_date": "2024-11-04",
+  "final_equity": 445832.5349701801,
+  "initial_capital": 10000.0,
+  "max_drawdown": -0.5348595358341259,
+  "start_date": "1993-01-29",
+  "strategy": "sp500_etf_proxy",
+  "symbol": "SPY",
+  "trading_days": 7999
+}

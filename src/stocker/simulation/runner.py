@@ -56,6 +56,7 @@ class DailyRecord:
     total_equity: float
     daily_return: float
     cumulative_contributions: float
+    cumulative_dividends: float
     trade_count_day: int
     turnover_day: float
 
@@ -107,6 +108,13 @@ def run_simulation(
             symbol: bar.close for symbol, bar in market.bars_on(trading_day).items()
         }
         for state in states:
+            dividends = {
+                symbol: bar.dividends
+                for symbol, bar in market.bars_on(trading_day).items()
+                if bar.dividends > 0
+            }
+            state.portfolio.apply_dividends(dividends)
+
             if _should_contribute(
                 last_contribution_date=state.last_contribution_date,
                 current_date=trading_day,
@@ -157,6 +165,7 @@ def run_simulation(
                     total_equity=equity,
                     daily_return=daily_return,
                     cumulative_contributions=state.portfolio.cumulative_contributions,
+                    cumulative_dividends=state.portfolio.cumulative_dividends,
                     trade_count_day=len(fills),
                     turnover_day=turnover,
                 )
@@ -245,4 +254,3 @@ def _should_contribute(
     if frequency is ContributionFrequency.YEARLY:
         return current_date.year != last_contribution_date.year
     raise ValueError(f"unsupported contribution frequency: {frequency}")
-

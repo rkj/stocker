@@ -49,3 +49,12 @@ def test_total_equity_matches_cash_plus_market_value() -> None:
     equity = p.total_equity({"AAA": 11.0})
     assert abs(equity - (p.cash + p.total_market_value({"AAA": 11.0}))) < 1e-9
 
+
+def test_apply_dividends_credits_cash_for_held_shares() -> None:
+    p = Portfolio(initial_cash=0.0)
+    p.holdings["AAA"] = 10.0
+
+    credited = p.apply_dividends({"AAA": 0.5, "BBB": 1.0})
+    assert credited == 5.0
+    assert p.cash == 5.0
+    assert p.cumulative_dividends == 5.0
