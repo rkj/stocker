@@ -90,6 +90,7 @@ def run_simulation(
     market: MarketData,
     strategy_specs: list[StrategySpec | dict[str, Any]],
     settings: RunSettings,
+    progress_years: bool = False,
 ) -> SimulationResult:
     states = [
         _build_state(spec=spec, settings=settings) for spec in strategy_specs
@@ -103,7 +104,11 @@ def run_simulation(
         slippage_bps=settings.slippage_bps,
     )
 
+    last_reported_year: int | None = None
     for trading_day in market.trading_dates:
+        if progress_years and trading_day.year != last_reported_year:
+            print(f"[sim] year={trading_day.year}", flush=True)
+            last_reported_year = trading_day.year
         prices = {
             symbol: bar.close for symbol, bar in market.bars_on(trading_day).items()
         }

@@ -50,3 +50,24 @@ def test_rolling_dollar_volume_uses_configured_window() -> None:
     assert values[first]["BP"] > 0
     assert values[second]["BP"] >= values[first]["BP"] * 0.5
 
+
+def test_loader_skips_rows_with_blank_close(tmp_path: Path) -> None:
+    path = tmp_path / "blank_close.csv"
+    path.write_text(
+        "\n".join(
+            [
+                "Date,Ticker,Open,High,Low,Close,Volume,Dividends,Stock Splits",
+                "2020-01-02,AAA,1,1,1,,100,0,0",
+                "2020-01-02,BBB,2,2,2,2,100,0,0",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    market = load_market_data(
+        input_path=path,
+        start_date=date(2020, 1, 1),
+        end_date=date(2020, 1, 10),
+    )
+    assert market.trading_dates == [date(2020, 1, 2)]
+    assert market.symbols == {"BBB"}

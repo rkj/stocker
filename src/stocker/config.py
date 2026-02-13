@@ -32,6 +32,8 @@ class SimulationConfig:
     seed: int = 42
     output_dir: str = "outputs"
     strategy_file: str | None = None
+    progress: bool = False
+    engine: str = "streaming"
 
     def __post_init__(self) -> None:
         if self.end_date < self.start_date:

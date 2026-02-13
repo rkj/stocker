@@ -23,6 +23,7 @@ def test_parse_args_uses_expected_defaults() -> None:
     assert cfg.end_date == date(2020, 12, 31)
     assert cfg.initial_capital == 10_000.0
     assert cfg.contribution_frequency is ContributionFrequency.NONE
+    assert cfg.engine == "streaming"
 
 
 def test_parse_args_accepts_contribution_and_cost_options() -> None:
@@ -58,4 +59,3 @@ def test_parse_args_accepts_contribution_and_cost_options() -> None:
     assert cfg.fee_fixed == 1.0
     assert cfg.slippage_bps == 1.5
     assert cfg.seed == 7
-

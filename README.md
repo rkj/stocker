@@ -23,7 +23,8 @@ PYTHONPATH=src python3 -m stocker.cli \
   --fee-bps 2.0 \
   --slippage-bps 1.0 \
   --strategy-file docs/examples/strategies.example.json \
-  --output-dir outputs/example_run
+  --output-dir outputs/example_run \
+  --progress
 ```
 
 Generated outputs:
@@ -32,6 +33,10 @@ Generated outputs:
 - `annual_summary.csv`
 - `terminal_summary.csv`
 - `run_manifest.json`
+
+Notes:
+- default engine is low-memory streaming (`--engine streaming`)
+- use `--progress` to print year checkpoints during long runs
 
 ## Example Strategy File
 

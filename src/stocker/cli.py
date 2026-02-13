@@ -19,6 +19,7 @@ from stocker.simulation.runner import (
     RunSettings,
     run_simulation,
 )
+from stocker.simulation.streaming import run_simulation_streaming
 
 
 def _date_type(value: str) -> date:
@@ -46,6 +47,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--output-dir", default="outputs")
     parser.add_argument("--strategy-file")
+    parser.add_argument("--progress", action="store_true")
+    parser.add_argument("--engine", choices=["streaming", "in_memory"], default="streaming")
     return parser
 
 
@@ -64,6 +67,8 @@ def parse_args(argv: Sequence[str]) -> SimulationConfig:
         seed=args.seed,
         output_dir=args.output_dir,
         strategy_file=args.strategy_file,
+        progress=args.progress,
+        engine=args.engine,
     )
 
 
@@ -83,26 +88,39 @@ def main(argv: Sequence[str] | None = None) -> int:
             }
         ]
 
-    market = load_market_data(
-        input_path=Path(cfg.data_path),
-        start_date=cfg.start_date,
-        end_date=cfg.end_date,
-    )
-    result = run_simulation(
-        market=market,
-        strategy_specs=strategy_specs,
-        settings=RunSettings(
-            initial_capital=cfg.initial_capital,
-            contribution_amount=cfg.contribution_amount,
-            contribution_frequency=RunnerContributionFrequency(
-                cfg.contribution_frequency.value
-            ),
-            fee_bps=cfg.fee_bps,
-            fee_fixed=cfg.fee_fixed,
-            slippage_bps=cfg.slippage_bps,
-            seed=cfg.seed,
+    run_settings = RunSettings(
+        initial_capital=cfg.initial_capital,
+        contribution_amount=cfg.contribution_amount,
+        contribution_frequency=RunnerContributionFrequency(
+            cfg.contribution_frequency.value
         ),
+        fee_bps=cfg.fee_bps,
+        fee_fixed=cfg.fee_fixed,
+        slippage_bps=cfg.slippage_bps,
+        seed=cfg.seed,
     )
+    if cfg.engine == "streaming":
+        result = run_simulation_streaming(
+            data_path=Path(cfg.data_path),
+            start_date=cfg.start_date,
+            end_date=cfg.end_date,
+            strategy_specs=strategy_specs,
+            settings=run_settings,
+            progress_years=cfg.progress,
+        )
+    else:
+        market = load_market_data(
+            input_path=Path(cfg.data_path),
+            start_date=cfg.start_date,
+            end_date=cfg.end_date,
+            progress_years=cfg.progress,
+        )
+        result = run_simulation(
+            market=market,
+            strategy_specs=strategy_specs,
+            settings=run_settings,
+            progress_years=cfg.progress,
+        )
     manifest = {
         "data_path": cfg.data_path,
         "start_date": cfg.start_date.isoformat(),
@@ -116,6 +134,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "seed": cfg.seed,
         "strategy_file": cfg.strategy_file,
         "strategy_count": len(strategy_specs),
+        "engine": cfg.engine,
     }
     outputs = write_run_outputs(
         result=result,

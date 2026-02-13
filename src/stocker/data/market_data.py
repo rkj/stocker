@@ -100,8 +100,14 @@ def _validate_header(fieldnames: list[str] | None) -> None:
         raise ValueError(f"missing required columns: {missing}")
 
 
-def _parse_float(row: dict[str, str], key: str) -> float:
-    return float(row[key])
+def _parse_optional_float(row: dict[str, str], key: str) -> float | None:
+    raw = row.get(key)
+    if raw is None or raw == "":
+        return None
+    try:
+        return float(raw)
+    except ValueError:
+        return None
 
 
 def load_market_data(
@@ -110,12 +116,14 @@ def load_market_data(
     start_date: date,
     end_date: date,
     symbols: set[str] | None = None,
+    progress_years: bool = False,
 ) -> MarketData:
     if end_date < start_date:
         raise ValueError("end_date must be on or after start_date")
 
     symbol_filter = None if symbols is None else {sym.upper() for sym in symbols}
     bars_by_date: dict[date, dict[str, MarketBar]] = {}
+    last_reported_year: int | None = None
 
     with input_path.open(newline="", encoding="utf-8") as infile:
         reader = csv.DictReader(infile)
@@ -124,26 +132,34 @@ def load_market_data(
             row_date = _parse_date(row["Date"])
             if row_date < start_date or row_date > end_date:
                 continue
+            if progress_years and row_date.year != last_reported_year:
+                print(f"[load] year={row_date.year}", flush=True)
+                last_reported_year = row_date.year
             ticker = row["Ticker"].upper()
             if symbol_filter is not None and ticker not in symbol_filter:
                 continue
 
-            close = _parse_float(row, "Close")
-            if close <= 0:
+            close = _parse_optional_float(row, "Close")
+            if close is None or close <= 0:
                 continue
+            open_price = _parse_optional_float(row, "Open")
+            high = _parse_optional_float(row, "High")
+            low = _parse_optional_float(row, "Low")
+            volume = _parse_optional_float(row, "Volume")
+            dividends = _parse_optional_float(row, "Dividends")
+            stock_splits = _parse_optional_float(row, "Stock Splits")
 
             bar = MarketBar(
                 date=row_date,
                 ticker=ticker,
-                open=_parse_float(row, "Open"),
-                high=_parse_float(row, "High"),
-                low=_parse_float(row, "Low"),
+                open=close if open_price is None else open_price,
+                high=close if high is None else high,
+                low=close if low is None else low,
                 close=close,
-                volume=_parse_float(row, "Volume"),
-                dividends=_parse_float(row, "Dividends"),
-                stock_splits=_parse_float(row, "Stock Splits"),
+                volume=0.0 if volume is None else volume,
+                dividends=0.0 if dividends is None else dividends,
+                stock_splits=0.0 if stock_splits is None else stock_splits,
             )
             bars_by_date.setdefault(row_date, {})[ticker] = bar
 
     return MarketData(bars_by_date)
-
