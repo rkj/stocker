@@ -31,6 +31,7 @@ class SimulationConfig:
     slippage_bps: float = 0.0
     seed: int = 42
     output_dir: str = "outputs"
+    strategy_file: str | None = None
 
     def __post_init__(self) -> None:
         if self.end_date < self.start_date:
@@ -41,4 +42,3 @@ class SimulationConfig:
             raise ValueError("contribution_amount must be non-negative")
         if self.fee_bps < 0 or self.fee_fixed < 0 or self.slippage_bps < 0:
             raise ValueError("fee/slippage inputs must be non-negative")
-

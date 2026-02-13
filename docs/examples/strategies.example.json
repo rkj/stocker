@@ -1,0 +1,37 @@
+{
+  "strategies": [
+    {
+      "strategy_id": "sp500_etf_proxy",
+      "type": "explicit_symbols",
+      "rebalance_frequency": "daily",
+      "params": {
+        "symbols": ["SPY"]
+      }
+    },
+    {
+      "strategy_id": "equal_weight_yearly",
+      "type": "equal_weight",
+      "rebalance_frequency": "yearly"
+    },
+    {
+      "strategy_id": "random_20_monthly",
+      "type": "random_n",
+      "rebalance_frequency": "monthly",
+      "params": {
+        "n": 20,
+        "seed": 42
+      }
+    },
+    {
+      "strategy_id": "top_50_dollar_volume",
+      "type": "top_n_ranked",
+      "rebalance_frequency": "monthly",
+      "params": {
+        "n": 50,
+        "metric": "dollar_volume_1d",
+        "proportional": false
+      }
+    }
+  ]
+}
+

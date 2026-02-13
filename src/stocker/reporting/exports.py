@@ -56,6 +56,7 @@ def _write_daily_equity(path: Path, by_strategy: dict[str, list[DailyRecord]]) -
         "daily_return",
         "cumulative_return",
         "contribution_cumulative",
+        "dividend_cumulative",
         "trade_count_day",
         "turnover_day",
     ]
@@ -79,6 +80,7 @@ def _write_daily_equity(path: Path, by_strategy: dict[str, list[DailyRecord]]) -
                         "daily_return": f"{record.daily_return:.10f}",
                         "cumulative_return": f"{cumulative_return:.10f}",
                         "contribution_cumulative": f"{record.cumulative_contributions:.10f}",
+                        "dividend_cumulative": f"{record.cumulative_dividends:.10f}",
                         "trade_count_day": record.trade_count_day,
                         "turnover_day": f"{record.turnover_day:.10f}",
                     }
@@ -265,4 +267,3 @@ def _cagr(
     if years <= 0:
         return 0.0
     return (end_value / start_value) ** (1.0 / years) - 1.0
-
