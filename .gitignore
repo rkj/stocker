@@ -1,1 +1,3 @@
 outputs/
+.beads/export-state/
+.beads/bd.sock.startlock
