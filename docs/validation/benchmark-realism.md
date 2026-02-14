@@ -24,20 +24,20 @@ Conclusion:
 - This implementation is **not realistic** for an S&P 500 proxy on this raw multi-asset universe.
 - It is retained as a diagnostic result, not as the published benchmark path.
 
-### 2) S&P ETF proxy (`SPY`) with dividend crediting (accepted benchmark)
+### 2) S&P ETF proxy (`SPY`) price-return benchmark (accepted)
 - method: simulator run with strategy `explicit_symbols` on `SPY`
-- window: `1993-01-29` to `2024-11-04`
-- output: `docs/validation/sp500_etf_proxy_result.json`
+- window: `1993-01-29` to `2024-01-02`
+- config: `--engine in_memory --price-series-mode raw_reconstructed --contribution-amount 0 --fee-bps 0 --slippage-bps 0`
 
 Result:
-- CAGR: `12.70%`
-- Annualized volatility: `18.66%`
-- Max drawdown: `-53.49%`
-- Cumulative dividend cash credited: `48,940.80`
+- CAGR: `7.98%`
+- Final equity from `$10,000`: `107,537.63`
+- Annualized volatility: `18.81%`
+- Max drawdown: `-56.46%`
 
 Conclusion:
-- This path is within a plausible band for the post-1990 U.S. large-cap regime.
-- This is the benchmark realism reference for v1.
+- This aligns with public price-return references near ~`8%` annualized for a comparable S&P 500 window.
+- This is the baseline realism reference for price-return comparisons.
 
 ## Published Reference Anchors
 1. NYU Stern (Damodaran) historical annual returns table:
@@ -48,12 +48,10 @@ Conclusion:
    - The page reports a 10-year annualized **price** return around `12.85%` (as-of 2025-12-31 on the displayed snapshot).
 
 ## Interpretation
-- Long-run U.S. equity expectations are commonly around ~`9-10%` nominal over very long windows.
-- Post-1990 windows can be materially higher, and the observed `12.70%` SPY-proxy CAGR is consistent with that regime.
-- Therefore, the simulator's accepted S&P proxy benchmark is considered realistic for the selected period.
+- Prior `12.70%` outputs came from double-counting dividends (adjusted close series plus explicit dividend cash credit).
+- After correcting the accounting path and using price-only reconstructed closes, results are close to published S&P 500 price-return references.
 
 ## Caveats
 - `SPY` starts in 1993, so it cannot validate pre-1993 periods.
 - The v1 broad top-500 dollar-volume reconstruction is not a faithful S&P 500 index reconstruction and should not be used as the realism anchor.
 - Transaction costs are disabled in this benchmark; cost sensitivity should be analyzed separately.
-

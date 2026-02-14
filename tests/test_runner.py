@@ -116,6 +116,7 @@ def test_dividends_are_credited_to_portfolio_cash(tmp_path: Path) -> None:
             fee_bps=0.0,
             fee_fixed=0.0,
             slippage_bps=0.0,
+            credit_dividends=True,
         ),
     )
     final = result.daily_records_by_strategy["aaa"][-1]

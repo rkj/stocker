@@ -8,9 +8,9 @@ import json
 import sys
 from datetime import date
 from pathlib import Path
-from typing import Sequence
+from typing import Any, Sequence
 
-from stocker.config import ContributionFrequency, SimulationConfig
+from stocker.config import ContributionFrequency, PriceSeriesMode, SimulationConfig
 from stocker.data.market_data import load_market_data
 from stocker.reporting.exports import write_run_outputs
 from stocker.simulation.config_parser import parse_strategy_file
@@ -52,6 +52,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--min-price", type=float, default=0.01)
     parser.add_argument("--max-price", type=float, default=100_000.0)
     parser.add_argument("--min-volume", type=float, default=0.0)
+    parser.add_argument("--credit-dividends", action="store_true")
+    parser.add_argument(
+        "--price-series-mode",
+        choices=[mode.value for mode in PriceSeriesMode],
+        default=PriceSeriesMode.AS_IS.value,
+    )
     return parser
 
 
@@ -75,7 +81,33 @@ def parse_args(argv: Sequence[str]) -> SimulationConfig:
         min_price=args.min_price,
         max_price=args.max_price,
         min_volume=args.min_volume,
+        credit_dividends=args.credit_dividends,
+        price_series_mode=PriceSeriesMode(args.price_series_mode),
     )
+
+
+def _explicit_symbol_universe(strategy_specs: list[Any]) -> set[str] | None:
+    if not strategy_specs:
+        return None
+    symbols: set[str] = set()
+    for spec in strategy_specs:
+        if hasattr(spec, "strategy_type"):
+            strategy_type = spec.strategy_type
+            params = spec.params
+        elif isinstance(spec, dict):
+            strategy_type = spec.get("type")
+            params = spec.get("params", {})
+        else:
+            return None
+        if strategy_type != "explicit_symbols":
+            return None
+        if not isinstance(params, dict):
+            return None
+        raw_symbols = params.get("symbols", [])
+        if not isinstance(raw_symbols, list):
+            return None
+        symbols.update(str(symbol).upper() for symbol in raw_symbols)
+    return symbols
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -104,7 +136,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         fee_fixed=cfg.fee_fixed,
         slippage_bps=cfg.slippage_bps,
         seed=cfg.seed,
+        credit_dividends=cfg.credit_dividends,
     )
+    if cfg.engine == "streaming" and cfg.price_series_mode is PriceSeriesMode.RAW_RECONSTRUCTED:
+        raise ValueError("raw_reconstructed price mode is only supported with --engine in_memory")
     if cfg.engine == "streaming":
         result = run_simulation_streaming(
             data_path=Path(cfg.data_path),
@@ -118,14 +153,17 @@ def main(argv: Sequence[str] | None = None) -> int:
             min_volume=cfg.min_volume,
         )
     else:
+        symbol_filter = _explicit_symbol_universe(strategy_specs)
         market = load_market_data(
             input_path=Path(cfg.data_path),
             start_date=cfg.start_date,
             end_date=cfg.end_date,
+            symbols=symbol_filter,
             progress_years=cfg.progress,
             min_price=cfg.min_price,
             max_price=cfg.max_price,
             min_volume=cfg.min_volume,
+            price_series_mode=cfg.price_series_mode.value,
         )
         result = run_simulation(
             market=market,
@@ -150,6 +188,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         "min_price": cfg.min_price,
         "max_price": cfg.max_price,
         "min_volume": cfg.min_volume,
+        "credit_dividends": cfg.credit_dividends,
+        "price_series_mode": cfg.price_series_mode.value,
     }
     outputs = write_run_outputs(
         result=result,

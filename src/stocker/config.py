@@ -16,6 +16,13 @@ class ContributionFrequency(str, Enum):
     YEARLY = "yearly"
 
 
+class PriceSeriesMode(str, Enum):
+    """How to interpret input close prices."""
+
+    AS_IS = "as_is"
+    RAW_RECONSTRUCTED = "raw_reconstructed"
+
+
 @dataclass(frozen=True, slots=True)
 class SimulationConfig:
     """Global run settings shared across all strategies."""
@@ -37,6 +44,8 @@ class SimulationConfig:
     min_price: float = 0.01
     max_price: float = 100_000.0
     min_volume: float = 0.0
+    credit_dividends: bool = False
+    price_series_mode: PriceSeriesMode = PriceSeriesMode.AS_IS
 
     def __post_init__(self) -> None:
         if self.end_date < self.start_date:

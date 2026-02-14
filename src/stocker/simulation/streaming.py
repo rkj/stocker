@@ -79,7 +79,8 @@ def run_simulation_streaming(
 
         for state in states:
             _write_off_unpriced_holdings(state.portfolio, day_prices)
-            state.portfolio.apply_dividends(day_dividends)
+            if settings.credit_dividends:
+                state.portfolio.apply_dividends(day_dividends)
             if _should_contribute(
                 last_contribution_date=state.last_contribution_date,
                 current_date=trading_day,

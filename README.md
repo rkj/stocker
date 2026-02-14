@@ -37,6 +37,26 @@ Generated outputs:
 Notes:
 - default engine is low-memory streaming (`--engine streaming`)
 - use `--progress` to print year checkpoints during long runs
+- dataset `Close` can be dividend-adjusted; `--credit-dividends` is opt-in to avoid double counting
+- `--price-series-mode raw_reconstructed` (in-memory engine only) reconstructs price-only close series from adjusted close + dividends
+
+Price-only S&P proxy benchmark (no extra cash, no fees/slippage):
+
+```bash
+PYTHONPATH=src python3 -m stocker.cli \
+  --data-path /mnt/nfs-lithium-public/rkj/all_stock_data.csv \
+  --start-date 1993-01-29 \
+  --end-date 2024-01-02 \
+  --initial-capital 10000 \
+  --contribution-amount 0 \
+  --contribution-frequency none \
+  --fee-bps 0 \
+  --slippage-bps 0 \
+  --strategy-file /tmp/sp500_only_nocontrib.json \
+  --output-dir /tmp/sp500_nocontrib_price_only \
+  --engine in_memory \
+  --price-series-mode raw_reconstructed
+```
 
 ## Example Strategy File
 
@@ -56,6 +76,7 @@ Benchmark validation artifacts:
 - `docs/validation/benchmark-realism.md`
 - `docs/validation/sp500_etf_proxy_result.json`
 - `docs/validation/sp500_proxy_streaming_result.json`
+- `docs/validation/sp500_price_proxy_reconstructed_result.json`
 
 ## Docs
 

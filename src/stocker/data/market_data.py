@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import csv
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date
 from pathlib import Path
 
@@ -120,6 +120,7 @@ def load_market_data(
     min_price: float = 0.01,
     max_price: float = 100_000.0,
     min_volume: float = 0.0,
+    price_series_mode: str = "as_is",
 ) -> MarketData:
     if end_date < start_date:
         raise ValueError("end_date must be on or after start_date")
@@ -169,4 +170,51 @@ def load_market_data(
             )
             bars_by_date.setdefault(row_date, {})[ticker] = bar
 
+    if price_series_mode == "raw_reconstructed":
+        bars_by_date = _reconstruct_raw_close_series(bars_by_date)
+    elif price_series_mode != "as_is":
+        raise ValueError(f"unsupported price_series_mode: {price_series_mode}")
+
     return MarketData(bars_by_date)
+
+
+def _reconstruct_raw_close_series(
+    bars_by_date: dict[date, dict[str, MarketBar]],
+) -> dict[date, dict[str, MarketBar]]:
+    """Reconstruct a price-only close series from adjusted close + dividends.
+
+    Assumes close prices are dividend-adjusted total-return closes.
+    """
+
+    by_symbol: dict[str, list[MarketBar]] = {}
+    for trading_day in sorted(bars_by_date):
+        for symbol, bar in bars_by_date[trading_day].items():
+            by_symbol.setdefault(symbol, []).append(bar)
+
+    overrides: dict[tuple[date, str], float] = {}
+    for symbol, series in by_symbol.items():
+        if not series:
+            continue
+        raw_close: list[float] = [0.0] * len(series)
+        raw_close[-1] = series[-1].close
+        for idx in range(len(series) - 1, 0, -1):
+            adjusted_now = series[idx].close
+            adjusted_prev = series[idx - 1].close
+            if adjusted_now <= 0 or adjusted_prev <= 0:
+                raw_close[idx - 1] = series[idx - 1].close
+                continue
+            ratio = adjusted_now / adjusted_prev
+            raw_prev = (raw_close[idx] + max(series[idx].dividends, 0.0)) / ratio
+            raw_close[idx - 1] = raw_prev if raw_prev > 0 else series[idx - 1].close
+        for bar, close_value in zip(series, raw_close):
+            overrides[(bar.date, symbol)] = close_value
+
+    rebuilt: dict[date, dict[str, MarketBar]] = {}
+    for trading_day, day_bars in bars_by_date.items():
+        rebuilt[trading_day] = {}
+        for symbol, bar in day_bars.items():
+            rebuilt[trading_day][symbol] = replace(
+                bar,
+                close=overrides.get((trading_day, symbol), bar.close),
+            )
+    return rebuilt

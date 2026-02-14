@@ -1,0 +1,17 @@
+{
+  "annualized_volatility": 0.1880646958,
+  "cagr": 0.0798362388,
+  "contribution_amount": 0.0,
+  "contribution_frequency": "none",
+  "credit_dividends": false,
+  "engine": "in_memory",
+  "fee_bps": 0.0,
+  "final_equity": 107537.6304768265,
+  "initial_capital": 10000.0,
+  "max_drawdown": -0.5646138273,
+  "price_series_mode": "raw_reconstructed",
+  "slippage_bps": 0.0,
+  "strategy_id": "sp500_etf_proxy",
+  "window_end": "2024-01-02",
+  "window_start": "1993-01-29"
+}

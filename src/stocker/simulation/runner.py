@@ -45,6 +45,7 @@ class RunSettings:
     fee_fixed: float
     slippage_bps: float
     seed: int = 42
+    credit_dividends: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -114,12 +115,13 @@ def run_simulation(
         }
         for state in states:
             _write_off_unpriced_holdings(state.portfolio, prices)
-            dividends = {
-                symbol: bar.dividends
-                for symbol, bar in market.bars_on(trading_day).items()
-                if bar.dividends > 0
-            }
-            state.portfolio.apply_dividends(dividends)
+            if settings.credit_dividends:
+                dividends = {
+                    symbol: bar.dividends
+                    for symbol, bar in market.bars_on(trading_day).items()
+                    if bar.dividends > 0
+                }
+                state.portfolio.apply_dividends(dividends)
 
             if _should_contribute(
                 last_contribution_date=state.last_contribution_date,
