@@ -30,6 +30,9 @@ def run_simulation_streaming(
     strategy_specs: list[StrategySpec | dict[str, Any]],
     settings: RunSettings,
     progress_years: bool = False,
+    min_price: float = 0.01,
+    max_price: float = 100_000.0,
+    min_volume: float = 0.0,
 ) -> SimulationResult:
     if end_date < start_date:
         raise ValueError("end_date must be on or after start_date")
@@ -52,12 +55,14 @@ def run_simulation_streaming(
     )
     rolling_store = _RollingMetricStore(rolling_windows)
 
-    last_prices: dict[str, float] = {}
     last_reported_year: int | None = None
     for trading_day, day in _iter_trading_days(
         data_path=data_path,
         start_date=start_date,
         end_date=end_date,
+        min_price=min_price,
+        max_price=max_price,
+        min_volume=min_volume,
     ):
         if progress_years and trading_day.year != last_reported_year:
             print(f"[stream] year={trading_day.year}", flush=True)
@@ -69,11 +74,11 @@ def run_simulation_streaming(
             symbol: day.closes[symbol] * max(day.volumes.get(symbol, 0.0), 0.0)
             for symbol in day.closes
         }
-        for symbol, price in day_prices.items():
-            last_prices[symbol] = price
+        for symbol in day_prices:
             rolling_store.update(symbol=symbol, value=day_dollar_volume[symbol])
 
         for state in states:
+            _write_off_unpriced_holdings(state.portfolio, day_prices)
             state.portfolio.apply_dividends(day_dividends)
             if _should_contribute(
                 last_contribution_date=state.last_contribution_date,
@@ -107,7 +112,7 @@ def run_simulation_streaming(
                     for fill in fills
                 )
 
-            market_value = state.portfolio.total_market_value(last_prices)
+            market_value = state.portfolio.total_market_value(day_prices)
             equity = state.portfolio.cash + market_value
             previous_equity = state.previous_equity
             daily_return = (
@@ -187,6 +192,9 @@ def _iter_trading_days(
     data_path: Path,
     start_date: date,
     end_date: date,
+    min_price: float,
+    max_price: float,
+    min_volume: float,
 ) -> Iterator[tuple[date, _DayData]]:
     current_day: date | None = None
     closes: dict[str, float] = {}
@@ -220,9 +228,13 @@ def _iter_trading_days(
             if close is None or close <= 0:
                 continue
             volume = _parse_optional_float(row.get("Volume"))
+            if close < min_price or close > max_price:
+                continue
+            if volume is None or volume < min_volume:
+                continue
             div = _parse_optional_float(row.get("Dividends"))
             closes[symbol] = close
-            volumes[symbol] = 0.0 if volume is None else volume
+            volumes[symbol] = volume
             dividends[symbol] = 0.0 if div is None else div
 
         if current_day is not None and closes:
@@ -417,3 +429,9 @@ def _should_contribute(
     if frequency is ContributionFrequency.YEARLY:
         return current_date.year != last_contribution_date.year
     raise ValueError(f"unsupported contribution frequency: {frequency}")
+
+
+def _write_off_unpriced_holdings(portfolio: Portfolio, prices: dict[str, float]) -> None:
+    stale_symbols = [symbol for symbol in portfolio.holdings if symbol not in prices]
+    for symbol in stale_symbols:
+        portfolio.holdings.pop(symbol, None)

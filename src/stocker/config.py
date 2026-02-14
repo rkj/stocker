@@ -34,6 +34,9 @@ class SimulationConfig:
     strategy_file: str | None = None
     progress: bool = False
     engine: str = "streaming"
+    min_price: float = 0.01
+    max_price: float = 100_000.0
+    min_volume: float = 0.0
 
     def __post_init__(self) -> None:
         if self.end_date < self.start_date:
@@ -44,3 +47,9 @@ class SimulationConfig:
             raise ValueError("contribution_amount must be non-negative")
         if self.fee_bps < 0 or self.fee_fixed < 0 or self.slippage_bps < 0:
             raise ValueError("fee/slippage inputs must be non-negative")
+        if self.min_price <= 0:
+            raise ValueError("min_price must be positive")
+        if self.max_price <= self.min_price:
+            raise ValueError("max_price must be greater than min_price")
+        if self.min_volume < 0:
+            raise ValueError("min_volume must be non-negative")

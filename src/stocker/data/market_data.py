@@ -117,6 +117,9 @@ def load_market_data(
     end_date: date,
     symbols: set[str] | None = None,
     progress_years: bool = False,
+    min_price: float = 0.01,
+    max_price: float = 100_000.0,
+    min_volume: float = 0.0,
 ) -> MarketData:
     if end_date < start_date:
         raise ValueError("end_date must be on or after start_date")
@@ -146,6 +149,10 @@ def load_market_data(
             high = _parse_optional_float(row, "High")
             low = _parse_optional_float(row, "Low")
             volume = _parse_optional_float(row, "Volume")
+            if close < min_price or close > max_price:
+                continue
+            if volume is None or volume < min_volume:
+                continue
             dividends = _parse_optional_float(row, "Dividends")
             stock_splits = _parse_optional_float(row, "Stock Splits")
 
@@ -156,7 +163,7 @@ def load_market_data(
                 high=close if high is None else high,
                 low=close if low is None else low,
                 close=close,
-                volume=0.0 if volume is None else volume,
+                volume=volume,
                 dividends=0.0 if dividends is None else dividends,
                 stock_splits=0.0 if stock_splits is None else stock_splits,
             )

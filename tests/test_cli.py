@@ -24,6 +24,9 @@ def test_parse_args_uses_expected_defaults() -> None:
     assert cfg.initial_capital == 10_000.0
     assert cfg.contribution_frequency is ContributionFrequency.NONE
     assert cfg.engine == "streaming"
+    assert cfg.min_price == 0.01
+    assert cfg.max_price == 100_000.0
+    assert cfg.min_volume == 0.0
 
 
 def test_parse_args_accepts_contribution_and_cost_options() -> None:

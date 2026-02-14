@@ -113,6 +113,7 @@ def run_simulation(
             symbol: bar.close for symbol, bar in market.bars_on(trading_day).items()
         }
         for state in states:
+            _write_off_unpriced_holdings(state.portfolio, prices)
             dividends = {
                 symbol: bar.dividends
                 for symbol, bar in market.bars_on(trading_day).items()
@@ -177,6 +178,14 @@ def run_simulation(
             )
 
     return SimulationResult(daily_records_by_strategy=daily_by_strategy, trades=dated_trades)
+
+
+def _write_off_unpriced_holdings(portfolio: Portfolio, prices: dict[str, float]) -> None:
+    # If a symbol has no usable price for the day, conservatively mark position to zero.
+    # This avoids implicit free optionality when symbols disappear/reappear in sparse datasets.
+    stale_symbols = [symbol for symbol in portfolio.holdings if symbol not in prices]
+    for symbol in stale_symbols:
+        portfolio.holdings.pop(symbol, None)
 
 
 def _to_spec(raw: StrategySpec | dict[str, Any]) -> StrategySpec:

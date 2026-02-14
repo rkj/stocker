@@ -49,6 +49,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--strategy-file")
     parser.add_argument("--progress", action="store_true")
     parser.add_argument("--engine", choices=["streaming", "in_memory"], default="streaming")
+    parser.add_argument("--min-price", type=float, default=0.01)
+    parser.add_argument("--max-price", type=float, default=100_000.0)
+    parser.add_argument("--min-volume", type=float, default=0.0)
     return parser
 
 
@@ -69,6 +72,9 @@ def parse_args(argv: Sequence[str]) -> SimulationConfig:
         strategy_file=args.strategy_file,
         progress=args.progress,
         engine=args.engine,
+        min_price=args.min_price,
+        max_price=args.max_price,
+        min_volume=args.min_volume,
     )
 
 
@@ -107,6 +113,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             strategy_specs=strategy_specs,
             settings=run_settings,
             progress_years=cfg.progress,
+            min_price=cfg.min_price,
+            max_price=cfg.max_price,
+            min_volume=cfg.min_volume,
         )
     else:
         market = load_market_data(
@@ -114,6 +123,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             start_date=cfg.start_date,
             end_date=cfg.end_date,
             progress_years=cfg.progress,
+            min_price=cfg.min_price,
+            max_price=cfg.max_price,
+            min_volume=cfg.min_volume,
         )
         result = run_simulation(
             market=market,
@@ -135,6 +147,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         "strategy_file": cfg.strategy_file,
         "strategy_count": len(strategy_specs),
         "engine": cfg.engine,
+        "min_price": cfg.min_price,
+        "max_price": cfg.max_price,
+        "min_volume": cfg.min_volume,
     }
     outputs = write_run_outputs(
         result=result,
