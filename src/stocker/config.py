@@ -44,6 +44,7 @@ class SimulationConfig:
     min_price: float = 0.01
     max_price: float = 100_000.0
     min_volume: float = 0.0
+    max_trade_participation: float = 0.01
     credit_dividends: bool = False
     price_series_mode: PriceSeriesMode = PriceSeriesMode.AS_IS
 
@@ -62,3 +63,5 @@ class SimulationConfig:
             raise ValueError("max_price must be greater than min_price")
         if self.min_volume < 0:
             raise ValueError("min_volume must be non-negative")
+        if self.max_trade_participation <= 0 or self.max_trade_participation > 1:
+            raise ValueError("max_trade_participation must be in (0, 1]")

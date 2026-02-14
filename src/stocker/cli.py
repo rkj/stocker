@@ -52,6 +52,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--min-price", type=float, default=0.01)
     parser.add_argument("--max-price", type=float, default=100_000.0)
     parser.add_argument("--min-volume", type=float, default=0.0)
+    parser.add_argument("--max-trade-participation", type=float, default=0.01)
     parser.add_argument("--credit-dividends", action="store_true")
     parser.add_argument(
         "--price-series-mode",
@@ -81,6 +82,7 @@ def parse_args(argv: Sequence[str]) -> SimulationConfig:
         min_price=args.min_price,
         max_price=args.max_price,
         min_volume=args.min_volume,
+        max_trade_participation=args.max_trade_participation,
         credit_dividends=args.credit_dividends,
         price_series_mode=PriceSeriesMode(args.price_series_mode),
     )
@@ -137,6 +139,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         slippage_bps=cfg.slippage_bps,
         seed=cfg.seed,
         credit_dividends=cfg.credit_dividends,
+        max_trade_participation=cfg.max_trade_participation,
     )
     if cfg.engine == "streaming" and cfg.price_series_mode is PriceSeriesMode.RAW_RECONSTRUCTED:
         raise ValueError("raw_reconstructed price mode is only supported with --engine in_memory")
@@ -188,6 +191,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "min_price": cfg.min_price,
         "max_price": cfg.max_price,
         "min_volume": cfg.min_volume,
+        "max_trade_participation": cfg.max_trade_participation,
         "credit_dividends": cfg.credit_dividends,
         "price_series_mode": cfg.price_series_mode.value,
     }

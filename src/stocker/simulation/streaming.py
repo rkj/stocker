@@ -107,7 +107,9 @@ def run_simulation_streaming(
                 fills = state.portfolio.rebalance_to_weights(
                     target_weights=target_weights,
                     prices=day_prices,
+                    volumes=day.volumes,
                     costs=costs,
+                    max_trade_participation=settings.max_trade_participation,
                 )
                 state.last_rebalance_date = trading_day
                 dated_trades.extend(

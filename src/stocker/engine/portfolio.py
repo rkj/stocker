@@ -74,32 +74,58 @@ class Portfolio:
         *,
         target_weights: dict[str, float],
         prices: dict[str, float],
+        volumes: dict[str, float] | None = None,
         costs: RebalanceCosts,
+        max_trade_participation: float = 1.0,
     ) -> list[TradeFill]:
         normalized = _normalize_weights(target_weights)
         equity = self.total_equity(prices)
 
         symbols = set(self.holdings) | set(normalized)
-        fills: list[TradeFill] = []
+        desired_deltas: dict[str, float] = {}
         for symbol in sorted(symbols):
             price = prices.get(symbol)
             if price is None or price <= 0:
                 continue
-
             current_shares = self.holdings.get(symbol, 0.0)
             current_value = current_shares * price
             target_value = normalized.get(symbol, 0.0) * equity
-            delta_value = target_value - current_value
-            shares_delta = delta_value / price
+            shares_delta = (target_value - current_value) / price
+            if abs(shares_delta) < 1e-12:
+                continue
+            desired_deltas[symbol] = shares_delta
+
+        sells = sorted(symbol for symbol, delta in desired_deltas.items() if delta < 0)
+        buys = sorted(symbol for symbol, delta in desired_deltas.items() if delta > 0)
+        fills: list[TradeFill] = []
+        for symbol in sells + buys:
+            shares_delta = desired_deltas[symbol]
+            shares_delta = _apply_liquidity_cap(
+                symbol=symbol,
+                shares_delta=shares_delta,
+                volumes=volumes,
+                max_trade_participation=max_trade_participation,
+            )
             if abs(shares_delta) < 1e-12:
                 continue
 
-            fill = _build_fill(
-                symbol=symbol,
-                price=price,
-                shares_delta=shares_delta,
-                costs=costs,
-            )
+            price = prices.get(symbol)
+            if price is None or price <= 0:
+                continue
+            current_shares = self.holdings.get(symbol, 0.0)
+            if shares_delta < 0:
+                shares_delta = max(shares_delta, -current_shares)
+            else:
+                shares_delta = _limit_buy_to_available_cash(
+                    cash=self.cash,
+                    price=price,
+                    desired_shares=shares_delta,
+                    costs=costs,
+                )
+            if abs(shares_delta) < 1e-12:
+                continue
+
+            fill = _build_fill(symbol=symbol, price=price, shares_delta=shares_delta, costs=costs)
             self.cash += fill.net_cash_impact
             self.cumulative_costs += fill.total_cost
 
@@ -151,3 +177,41 @@ def _build_fill(
         total_cost=total_cost,
         net_cash_impact=net_cash_impact,
     )
+
+
+def _apply_liquidity_cap(
+    *,
+    symbol: str,
+    shares_delta: float,
+    volumes: dict[str, float] | None,
+    max_trade_participation: float,
+) -> float:
+    if volumes is None:
+        return shares_delta
+    volume = max(volumes.get(symbol, 0.0), 0.0)
+    if volume <= 0:
+        return 0.0
+    max_shares = volume * max_trade_participation
+    if max_shares <= 0:
+        return 0.0
+    if shares_delta > 0:
+        return min(shares_delta, max_shares)
+    return -min(abs(shares_delta), max_shares)
+
+
+def _limit_buy_to_available_cash(
+    *,
+    cash: float,
+    price: float,
+    desired_shares: float,
+    costs: RebalanceCosts,
+) -> float:
+    if desired_shares <= 0 or cash <= 0 or price <= 0:
+        return 0.0
+    variable_rate = (costs.fee_bps + costs.slippage_bps) / 10_000.0
+    fixed = costs.fee_fixed
+    if cash <= fixed:
+        return 0.0
+    max_gross = (cash - fixed) / (1.0 + variable_rate)
+    max_shares = max(0.0, max_gross / price)
+    return min(desired_shares, max_shares)

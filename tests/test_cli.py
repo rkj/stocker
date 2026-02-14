@@ -27,6 +27,7 @@ def test_parse_args_uses_expected_defaults() -> None:
     assert cfg.min_price == 0.01
     assert cfg.max_price == 100_000.0
     assert cfg.min_volume == 0.0
+    assert cfg.max_trade_participation == 0.01
     assert cfg.credit_dividends is False
     assert cfg.price_series_mode is PriceSeriesMode.AS_IS
 
@@ -54,6 +55,8 @@ def test_parse_args_accepts_contribution_and_cost_options() -> None:
             "1.5",
             "--seed",
             "7",
+            "--max-trade-participation",
+            "0.05",
         ]
     )
 
@@ -64,6 +67,7 @@ def test_parse_args_accepts_contribution_and_cost_options() -> None:
     assert cfg.fee_fixed == 1.0
     assert cfg.slippage_bps == 1.5
     assert cfg.seed == 7
+    assert cfg.max_trade_participation == 0.05
 
 
 def test_parse_args_accepts_price_series_controls() -> None:

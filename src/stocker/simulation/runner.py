@@ -46,6 +46,7 @@ class RunSettings:
     slippage_bps: float
     seed: int = 42
     credit_dividends: bool = False
+    max_trade_participation: float = 1.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -113,6 +114,9 @@ def run_simulation(
         prices = {
             symbol: bar.close for symbol, bar in market.bars_on(trading_day).items()
         }
+        volumes = {
+            symbol: bar.volume for symbol, bar in market.bars_on(trading_day).items()
+        }
         for state in states:
             _write_off_unpriced_holdings(state.portfolio, prices)
             if settings.credit_dividends:
@@ -146,7 +150,9 @@ def run_simulation(
                 fills = state.portfolio.rebalance_to_weights(
                     target_weights=target_weights,
                     prices=prices,
+                    volumes=volumes,
                     costs=costs,
+                    max_trade_participation=settings.max_trade_participation,
                 )
                 state.last_rebalance_date = trading_day
                 dated_trades.extend(

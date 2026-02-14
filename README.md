@@ -37,6 +37,7 @@ Generated outputs:
 Notes:
 - default engine is low-memory streaming (`--engine streaming`)
 - use `--progress` to print year checkpoints during long runs
+- default execution liquidity guard is `--max-trade-participation 0.01` (max 1% of that day volume per symbol trade; zero-volume symbols are not traded)
 - dataset `Close` can be dividend-adjusted; `--credit-dividends` is opt-in to avoid double counting
 - `--price-series-mode raw_reconstructed` (in-memory engine only) reconstructs price-only close series from adjusted close + dividends
 
