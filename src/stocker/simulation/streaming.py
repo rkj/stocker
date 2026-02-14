@@ -81,6 +81,7 @@ def run_simulation_streaming(
             _write_off_unpriced_holdings(state.portfolio, day_prices)
             if settings.credit_dividends:
                 state.portfolio.apply_dividends(day_dividends)
+            contribution_today = 0.0
             if _should_contribute(
                 last_contribution_date=state.last_contribution_date,
                 current_date=trading_day,
@@ -88,6 +89,7 @@ def run_simulation_streaming(
             ) and settings.contribution_amount > 0:
                 state.portfolio.contribute(settings.contribution_amount)
                 state.last_contribution_date = trading_day
+                contribution_today = settings.contribution_amount
 
             fills: list[TradeFill] = []
             if should_rebalance(
@@ -119,7 +121,7 @@ def run_simulation_streaming(
             daily_return = (
                 0.0
                 if previous_equity is None or previous_equity == 0
-                else (equity / previous_equity) - 1.0
+                else ((equity - contribution_today) / previous_equity) - 1.0
             )
             turnover = (
                 0.0

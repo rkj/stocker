@@ -123,6 +123,7 @@ def run_simulation(
                 }
                 state.portfolio.apply_dividends(dividends)
 
+            contribution_today = 0.0
             if _should_contribute(
                 last_contribution_date=state.last_contribution_date,
                 current_date=trading_day,
@@ -130,6 +131,7 @@ def run_simulation(
             ) and settings.contribution_amount > 0:
                 state.portfolio.contribute(settings.contribution_amount)
                 state.last_contribution_date = trading_day
+                contribution_today = settings.contribution_amount
 
             fills: list[TradeFill] = []
             if should_rebalance(
@@ -158,7 +160,7 @@ def run_simulation(
             if previous_equity is None or previous_equity == 0:
                 daily_return = 0.0
             else:
-                daily_return = (equity / previous_equity) - 1.0
+                daily_return = ((equity - contribution_today) / previous_equity) - 1.0
             turnover = 0.0 if previous_equity in (None, 0) else sum(
                 fill.gross_value for fill in fills
             ) / previous_equity

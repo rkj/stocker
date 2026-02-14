@@ -67,9 +67,10 @@ def _write_daily_equity(path: Path, by_strategy: dict[str, list[DailyRecord]]) -
             records = by_strategy[strategy_id]
             if not records:
                 continue
-            first_equity = records[0].total_equity
+            running_growth = 1.0
             for record in records:
-                cumulative_return = 0.0 if first_equity == 0 else (record.total_equity / first_equity) - 1.0
+                running_growth *= 1.0 + record.daily_return
+                cumulative_return = running_growth - 1.0
                 writer.writerow(
                     {
                         "date": record.date.isoformat(),
@@ -161,7 +162,7 @@ def _write_annual_summary(path: Path, by_strategy: dict[str, list[DailyRecord]])
                         "start_equity": f"{start.total_equity:.10f}",
                         "end_equity": f"{end.total_equity:.10f}",
                         "net_contributions_year": f"{net_contrib:.10f}",
-                        "return_year": f"{_period_return(start.total_equity, end.total_equity):.10f}",
+                        "return_year": f"{_compound_returns(yearly_returns):.10f}",
                         "max_drawdown_year": f"{_max_drawdown(yearly):.10f}",
                         "volatility_year": f"{_annualized_volatility(yearly_returns):.10f}",
                     }
@@ -203,11 +204,10 @@ def _write_terminal_summary(
             net_profit = last.total_equity - invested
             returns = [r.daily_return for r in records]
             vol = _annualized_volatility(returns)
-            cagr = _cagr(
+            cagr = _annualized_from_daily(
                 start_date=first.date,
                 end_date=last.date,
-                start_value=first.total_equity,
-                end_value=last.total_equity,
+                daily_returns=returns,
             )
             sharpe_proxy = 0.0 if vol == 0 else cagr / vol
             avg_turnover = sum(r.turnover_day for r in records) / len(records)
@@ -227,10 +227,11 @@ def _write_terminal_summary(
             )
 
 
-def _period_return(start_value: float, end_value: float) -> float:
-    if start_value == 0:
-        return 0.0
-    return (end_value / start_value) - 1.0
+def _compound_returns(daily_returns: list[float]) -> float:
+    growth = 1.0
+    for value in daily_returns:
+        growth *= 1.0 + value
+    return growth - 1.0
 
 
 def _max_drawdown(records: list[DailyRecord]) -> float:
@@ -251,19 +252,19 @@ def _annualized_volatility(daily_returns: list[float]) -> float:
     return pstdev(daily_returns) * math.sqrt(252.0)
 
 
-def _cagr(
+def _annualized_from_daily(
     *,
     start_date: date,
     end_date: date,
-    start_value: float,
-    end_value: float,
+    daily_returns: list[float],
 ) -> float:
-    if start_value <= 0:
-        return 0.0
     days = (end_date - start_date).days
     if days <= 0:
         return 0.0
     years = days / 365.25
     if years <= 0:
         return 0.0
-    return (end_value / start_value) ** (1.0 / years) - 1.0
+    total_return = _compound_returns(daily_returns)
+    if total_return <= -1.0:
+        return -1.0
+    return (1.0 + total_return) ** (1.0 / years) - 1.0

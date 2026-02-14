@@ -122,3 +122,40 @@ def test_dividends_are_credited_to_portfolio_cash(tmp_path: Path) -> None:
     final = result.daily_records_by_strategy["aaa"][-1]
     assert final.cumulative_dividends == 100.0
     assert final.total_equity == 1100.0
+
+
+def test_daily_return_excludes_external_contribution_flow(tmp_path: Path) -> None:
+    csv_path = tmp_path / "flat.csv"
+    with csv_path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(
+            ["Date", "Ticker", "Open", "High", "Low", "Close", "Volume", "Dividends", "Stock Splits"]
+        )
+        writer.writerow(["2020-01-02", "AAA", 10, 10, 10, 10, 100, 0, 0])
+        writer.writerow(["2020-01-03", "AAA", 10, 10, 10, 10, 100, 0, 0])
+
+    market = load_market_data(
+        input_path=csv_path,
+        start_date=date(2020, 1, 2),
+        end_date=date(2020, 1, 3),
+    )
+    result = run_simulation(
+        market=market,
+        strategy_specs=[
+            {
+                "strategy_id": "aaa",
+                "type": "explicit_symbols",
+                "params": {"symbols": ["AAA"]},
+            }
+        ],
+        settings=RunSettings(
+            initial_capital=1000.0,
+            contribution_amount=100.0,
+            contribution_frequency=ContributionFrequency.DAILY,
+            fee_bps=0.0,
+            fee_fixed=0.0,
+            slippage_bps=0.0,
+        ),
+    )
+    records = result.daily_records_by_strategy["aaa"]
+    assert round(records[1].daily_return, 10) == 0.0
