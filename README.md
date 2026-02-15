@@ -79,6 +79,22 @@ Benchmark validation artifacts:
 - `docs/validation/sp500_proxy_streaming_result.json`
 - `docs/validation/sp500_price_proxy_reconstructed_result.json`
 
+## Period Cube
+
+Build a `(strategy_id, start_date, end_date)` period-return cube from a run:
+
+```bash
+PYTHONPATH=src python3 -m stocker.tools.period_cube \
+  --daily-equity-path outputs/example_run/daily_equity.csv \
+  --output-path outputs/example_run/period_cube_monthly.csv \
+  --date-grid monthly
+```
+
+`--date-grid` controls cube density:
+- `daily` (largest)
+- `monthly` (default)
+- `yearly`
+
 ## Docs
 
 - Product spec: `docs/spec/`
