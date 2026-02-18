@@ -8,7 +8,7 @@ def test_parse_args_uses_expected_defaults() -> None:
     cfg = parse_args(
         [
             "--data-path",
-            "/tmp/data.csv",
+            "data.csv",
             "--start-date",
             "2020-01-01",
             "--end-date",
@@ -18,7 +18,7 @@ def test_parse_args_uses_expected_defaults() -> None:
         ]
     )
 
-    assert cfg.data_path == "/tmp/data.csv"
+    assert cfg.data_path == "data.csv"
     assert cfg.start_date == date(2020, 1, 1)
     assert cfg.end_date == date(2020, 12, 31)
     assert cfg.initial_capital == 10_000.0
@@ -36,7 +36,7 @@ def test_parse_args_accepts_contribution_and_cost_options() -> None:
     cfg = parse_args(
         [
             "--data-path",
-            "/tmp/data.csv",
+            "data.csv",
             "--start-date",
             "2020-01-01",
             "--end-date",
@@ -74,7 +74,7 @@ def test_parse_args_accepts_price_series_controls() -> None:
     cfg = parse_args(
         [
             "--data-path",
-            "/tmp/data.csv",
+            "data.csv",
             "--start-date",
             "2020-01-01",
             "--end-date",

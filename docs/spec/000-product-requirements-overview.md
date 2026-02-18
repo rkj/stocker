@@ -35,7 +35,7 @@ Many backtests are not reproducible, hide assumptions, or are hard to compare fa
 
 ## 6. Data Inputs
 Required runtime arguments:
-- `--data-path`: CSV path (default example: `/mnt/nfs-lithium-public/rkj/all_stock_data.csv`).
+- `--data-path`: CSV path (for example: `data/market_data.csv`).
 - `--start-date`: simulation start date.
 - `--end-date`: simulation end date.
 - `--initial-capital`: starting cash.

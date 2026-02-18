@@ -4,7 +4,7 @@ Run a multi-strategy simulation and export all outputs:
 
 ```bash
 PYTHONPATH=src python3 -m stocker.cli \
-  --data-path /mnt/nfs-lithium-public/rkj/all_stock_data.csv \
+  --data-path data/market_data.csv \
   --start-date 1993-01-29 \
   --end-date 2024-11-04 \
   --initial-capital 10000 \
@@ -22,4 +22,3 @@ Generated files:
 - `outputs/example_run/annual_summary.csv`
 - `outputs/example_run/terminal_summary.csv`
 - `outputs/example_run/run_manifest.json`
-

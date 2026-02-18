@@ -4,7 +4,7 @@
 2026-02-12
 
 ## Inputs
-- data source: `/mnt/nfs-lithium-public/rkj/all_stock_data.csv`
+- data source: user-provided CSV (`--data-path`)
 - initial capital: `10,000`
 - transaction costs: `0 bps`, `0 fixed`, `0 slippage` (for baseline realism check)
 

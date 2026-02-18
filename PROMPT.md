@@ -3,7 +3,7 @@
 
   one strategy that must be possible to execute is S&P 500 index with daily rebalancing. There must be inputs like trading cost or
   something. You should work until you get realistic market returns from the historical data (matching published research). Data
-  should be taken from arguments, currently it's located at /mnt/nfs-lithium-public/rkj/all_stock_data.csv
+  should be taken from arguments, currently it's located at <path-to-all-stock-data.csv>
 
   another strategy we will want to compare is equal owned (buy same $ amount of evry stock and rebalance from there)
 

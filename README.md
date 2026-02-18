@@ -14,7 +14,7 @@ Run a simulation with example strategies:
 
 ```bash
 PYTHONPATH=src python3 -m stocker.cli \
-  --data-path /mnt/nfs-lithium-public/rkj/all_stock_data.csv \
+  --data-path data/market_data.csv \
   --start-date 1993-01-29 \
   --end-date 2024-11-04 \
   --initial-capital 10000 \
@@ -45,7 +45,7 @@ Price-only S&P proxy benchmark (no extra cash, no fees/slippage):
 
 ```bash
 PYTHONPATH=src python3 -m stocker.cli \
-  --data-path /mnt/nfs-lithium-public/rkj/all_stock_data.csv \
+  --data-path data/market_data.csv \
   --start-date 1993-01-29 \
   --end-date 2024-01-02 \
   --initial-capital 10000 \
@@ -53,8 +53,8 @@ PYTHONPATH=src python3 -m stocker.cli \
   --contribution-frequency none \
   --fee-bps 0 \
   --slippage-bps 0 \
-  --strategy-file /tmp/sp500_only_nocontrib.json \
-  --output-dir /tmp/sp500_nocontrib_price_only \
+  --strategy-file docs/examples/strategies.example.json \
+  --output-dir outputs/sp500_nocontrib_price_only \
   --engine in_memory \
   --price-series-mode raw_reconstructed
 ```
@@ -94,6 +94,19 @@ PYTHONPATH=src python3 -m stocker.tools.period_cube \
 - `daily` (largest)
 - `monthly` (default)
 - `yearly`
+
+## CSV Format
+
+Input CSV must include these headers:
+- `Date`
+- `Ticker`
+- `Open`
+- `High`
+- `Low`
+- `Close`
+- `Volume`
+- `Dividends`
+- `Stock Splits`
 
 ## Docs
 

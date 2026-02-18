@@ -1,22 +1,29 @@
 # Fixture Dataset
 
-`sample_stock_data.csv` is a deterministic subset extracted from the full historical dataset:
-- source: `/mnt/nfs-lithium-public/rkj/all_stock_data.csv`
-- symbols: `ED,CVX,GD,BP,IBM,KO`
-- window: `1980-01-01` to `1980-12-31`
-- max rows requested: `2500`
+`sample_stock_data.csv` is a deterministic synthetic dataset for tests.
+It is generated data, not redistributed market data.
+
+CSV schema:
+- `Date`
+- `Ticker`
+- `Open`
+- `High`
+- `Low`
+- `Close`
+- `Volume`
+- `Dividends`
+- `Stock Splits`
 
 Actual output summary is tracked in `sample_stock_data.manifest.json`.
 
-Regenerate:
+Generate a new fixture from your own input dataset:
 
 ```bash
 PYTHONPATH=src python3 -m stocker.tools.fixture_extractor \
-  --input-path /mnt/nfs-lithium-public/rkj/all_stock_data.csv \
+  --input-path data/market_data.csv \
   --output-path tests/fixtures/sample_stock_data.csv \
   --symbols ED,CVX,GD,BP,IBM,KO \
   --start-date 1980-01-01 \
   --end-date 1980-12-31 \
   --max-rows 2500
 ```
-

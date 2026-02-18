@@ -4,7 +4,7 @@
 Build a high-quality stock trading simulator that runs multiple strategies over historical data and compares performance with realistic assumptions (rebalancing, trading costs, contributions, and configurable universes).
 
 Default dataset path for local runs:
-- `/mnt/nfs-lithium-public/rkj/all_stock_data.csv`
+- `data/market_data.csv`
 
 ## Mandatory Workflow
 1. Run `bd prime` at session start.

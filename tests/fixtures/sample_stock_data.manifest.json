@@ -1,20 +1,19 @@
 {
   "fixture_path": "tests/fixtures/sample_stock_data.csv",
-  "selection": {
-    "end_date": "1980-12-31",
-    "max_rows": 2500,
-    "start_date": "1980-01-01",
-    "symbols": [
-      "ED",
-      "CVX",
-      "GD",
-      "BP",
-      "IBM",
-      "KO"
-    ]
-  },
-  "source_path": "/mnt/nfs-lithium-public/rkj/all_stock_data.csv",
+  "source": "synthetic_generator_v1",
+  "schema": [
+    "Date",
+    "Ticker",
+    "Open",
+    "High",
+    "Low",
+    "Close",
+    "Volume",
+    "Dividends",
+    "Stock Splits"
+  ],
   "summary": {
+    "start_date": "1980-01-02",
     "end_date": "1980-12-31",
     "rows": 1518,
     "rows_per_ticker": {
@@ -24,7 +23,6 @@
       "GD": 253,
       "IBM": 253,
       "KO": 253
-    },
-    "start_date": "1980-01-02"
+    }
   }
 }
