@@ -2,6 +2,25 @@
 
 Stocker is a historical stock strategy simulator.
 
+## Data Setup
+
+This repository does not include historical market data.
+
+Provide your own CSV at runtime via `--data-path`:
+- export from your data vendor or broker
+- or prepare a normalized CSV with the required schema below
+
+For local slicing of your own large dataset:
+
+```bash
+PYTHONPATH=src python3 -m stocker.tools.fixture_extractor \
+  --input-path data/market_data_full.csv \
+  --output-path data/market_data.csv \
+  --symbols SPY,AAPL,MSFT \
+  --start-date 2010-01-01 \
+  --end-date 2024-12-31
+```
+
 ## Quick Start
 
 Run tests:

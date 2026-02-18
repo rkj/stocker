@@ -9,12 +9,9 @@ from stocker.reporting.exports import write_run_outputs
 from stocker.simulation.runner import ContributionFrequency, RunSettings, run_simulation
 
 
-FIXTURE_PATH = Path("tests/fixtures/sample_stock_data.csv")
-
-
-def test_write_run_outputs_creates_required_files(tmp_path: Path) -> None:
+def test_write_run_outputs_creates_required_files(tmp_path: Path, synthetic_market_csv: Path) -> None:
     market = load_market_data(
-        input_path=FIXTURE_PATH,
+        input_path=synthetic_market_csv,
         start_date=date(1980, 1, 2),
         end_date=date(1980, 1, 10),
     )
@@ -48,9 +45,11 @@ def test_write_run_outputs_creates_required_files(tmp_path: Path) -> None:
     assert len(daily_lines) > 2
 
 
-def test_annual_and_terminal_summaries_include_strategy_id(tmp_path: Path) -> None:
+def test_annual_and_terminal_summaries_include_strategy_id(
+    tmp_path: Path, synthetic_market_csv: Path
+) -> None:
     market = load_market_data(
-        input_path=FIXTURE_PATH,
+        input_path=synthetic_market_csv,
         start_date=date(1980, 1, 2),
         end_date=date(1980, 3, 10),
     )

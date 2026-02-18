@@ -10,9 +10,6 @@ from stocker.simulation.config_parser import parse_strategy_file
 from stocker.simulation.runner import ContributionFrequency, RunSettings, run_simulation
 
 
-FIXTURE_PATH = Path("tests/fixtures/sample_stock_data.csv")
-
-
 def test_parse_strategy_file_loads_multiple_strategies(tmp_path: Path) -> None:
     config_path = tmp_path / "strategies.json"
     config_path.write_text(
@@ -36,9 +33,9 @@ def test_parse_strategy_file_loads_multiple_strategies(tmp_path: Path) -> None:
     assert parsed[1].params["n"] == 2
 
 
-def test_run_simulation_produces_daily_records_for_each_strategy() -> None:
+def test_run_simulation_produces_daily_records_for_each_strategy(synthetic_market_csv: Path) -> None:
     market = load_market_data(
-        input_path=FIXTURE_PATH,
+        input_path=synthetic_market_csv,
         start_date=date(1980, 1, 2),
         end_date=date(1980, 1, 10),
     )
@@ -64,9 +61,11 @@ def test_run_simulation_produces_daily_records_for_each_strategy() -> None:
         assert records[-1].date == market.trading_dates[-1]
 
 
-def test_monthly_contribution_is_applied_on_first_trading_day_of_month() -> None:
+def test_monthly_contribution_is_applied_on_first_trading_day_of_month(
+    synthetic_market_csv: Path,
+) -> None:
     market = load_market_data(
-        input_path=FIXTURE_PATH,
+        input_path=synthetic_market_csv,
         start_date=date(1980, 1, 2),
         end_date=date(1980, 2, 5),
     )

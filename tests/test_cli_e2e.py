@@ -6,7 +6,7 @@ from pathlib import Path
 from stocker.cli import main
 
 
-def test_cli_run_writes_output_bundle(tmp_path: Path) -> None:
+def test_cli_run_writes_output_bundle(tmp_path: Path, synthetic_market_csv: Path) -> None:
     strategies_path = tmp_path / "strategies.json"
     strategies_path.write_text(
         json.dumps(
@@ -32,7 +32,7 @@ def test_cli_run_writes_output_bundle(tmp_path: Path) -> None:
     exit_code = main(
         [
             "--data-path",
-            "tests/fixtures/sample_stock_data.csv",
+            str(synthetic_market_csv),
             "--start-date",
             "1980-01-02",
             "--end-date",
@@ -52,4 +52,3 @@ def test_cli_run_writes_output_bundle(tmp_path: Path) -> None:
     assert (out_dir / "annual_summary.csv").exists()
     assert (out_dir / "terminal_summary.csv").exists()
     assert (out_dir / "run_manifest.json").exists()
-

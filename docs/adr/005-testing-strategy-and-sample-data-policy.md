@@ -12,7 +12,7 @@ Constraints:
 - Tests must stay fast and deterministic.
 
 ## Decision
-Adopt a three-layer test strategy with deterministic fixtures extracted from production-format data.
+Adopt a three-layer test strategy with deterministic synthetic fixtures generated at test runtime.
 
 ## Test Layers
 1. Unit tests (fast, isolated)
@@ -30,16 +30,17 @@ Adopt a three-layer test strategy with deterministic fixtures extracted from pro
 - Determinism checks across repeated runs with fixed seed.
 
 ## Fixture Policy
-- Create deterministic fixture subsets from `all_stock_data.csv` via script.
+- Generate deterministic synthetic datasets at test runtime.
+- Keep integration fixtures self-contained and non-proprietary.
 - Include representative cases:
 - multiple symbols
 - long enough window for rolling metrics
 - sparse symbol coverage
 - at least one dividend and split row where possible
-- Fixture generation must be reproducible from explicit selector config.
+- Fixture generation must be reproducible from explicit seed/formula.
 
 Fixture storage:
-- `tests/fixtures/` contains extracted CSV slices and expected-output snapshots.
+- No external market-data slices are checked into the repository.
 
 ## TDD Workflow Rules
 For each behavioral change:
@@ -67,9 +68,10 @@ Required CI/local gates before closing an implementation issue:
 Positive:
 - High confidence in accounting and strategy correctness.
 - Faster developer iteration due to compact fixtures.
+- No data-licensing risk from redistributed market data.
 
 Negative:
-- Requires maintenance of fixture extractor and snapshot updates.
+- Requires maintenance of synthetic fixture generators.
 - Some full-scale performance issues only surface in dedicated benchmark runs.
 
 ## Alternatives Considered
@@ -80,5 +82,5 @@ Only unit tests without integration layer:
 - Rejected due to risk of interface/integration regressions.
 
 ## Follow-up
-- Implement fixture extraction utility and add fixture manifest.
+- Keep fixture extraction utility for local/private workflows only.
 - Add benchmark command separate from test suite.

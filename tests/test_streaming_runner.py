@@ -9,10 +9,7 @@ from stocker.simulation.runner import ContributionFrequency, RunSettings, run_si
 from stocker.simulation.streaming import run_simulation_streaming
 
 
-FIXTURE_PATH = Path("tests/fixtures/sample_stock_data.csv")
-
-
-def test_streaming_runner_matches_in_memory_for_fixture_window() -> None:
+def test_streaming_runner_matches_in_memory_for_fixture_window(synthetic_market_csv: Path) -> None:
     settings = RunSettings(
         initial_capital=10_000.0,
         contribution_amount=100.0,
@@ -28,7 +25,7 @@ def test_streaming_runner_matches_in_memory_for_fixture_window() -> None:
         {"strategy_id": "rand2", "type": "random_n", "rebalance_frequency": "monthly", "params": {"n": 2, "seed": 7}},
     ]
     in_memory_market = load_market_data(
-        input_path=FIXTURE_PATH,
+        input_path=synthetic_market_csv,
         start_date=date(1980, 1, 2),
         end_date=date(1980, 3, 31),
     )
@@ -38,7 +35,7 @@ def test_streaming_runner_matches_in_memory_for_fixture_window() -> None:
         settings=settings,
     )
     streamed = run_simulation_streaming(
-        data_path=FIXTURE_PATH,
+        data_path=synthetic_market_csv,
         start_date=date(1980, 1, 2),
         end_date=date(1980, 3, 31),
         strategy_specs=specs,
@@ -53,7 +50,9 @@ def test_streaming_runner_matches_in_memory_for_fixture_window() -> None:
         assert round(a[-1].total_equity, 8) == round(b[-1].total_equity, 8)
 
 
-def test_streaming_runner_is_deterministic_for_random_strategy() -> None:
+def test_streaming_runner_is_deterministic_for_random_strategy(
+    synthetic_market_csv: Path,
+) -> None:
     settings = RunSettings(
         initial_capital=10_000.0,
         contribution_amount=0.0,
@@ -67,14 +66,14 @@ def test_streaming_runner_is_deterministic_for_random_strategy() -> None:
         {"strategy_id": "rand2", "type": "random_n", "rebalance_frequency": "daily", "params": {"n": 2, "seed": 123}}
     ]
     first = run_simulation_streaming(
-        data_path=FIXTURE_PATH,
+        data_path=synthetic_market_csv,
         start_date=date(1980, 1, 2),
         end_date=date(1980, 1, 20),
         strategy_specs=specs,
         settings=settings,
     )
     second = run_simulation_streaming(
-        data_path=FIXTURE_PATH,
+        data_path=synthetic_market_csv,
         start_date=date(1980, 1, 2),
         end_date=date(1980, 1, 20),
         strategy_specs=specs,

@@ -11,10 +11,6 @@ from stocker.strategies.baseline import (
     should_rebalance,
 )
 
-
-FIXTURE_PATH = Path("tests/fixtures/sample_stock_data.csv")
-
-
 def test_should_rebalance_daily_yearly_never() -> None:
     start = date(2020, 1, 2)
     next_day = date(2020, 1, 3)
@@ -31,9 +27,9 @@ def test_should_rebalance_daily_yearly_never() -> None:
     assert not should_rebalance(start, next_day, RebalanceFrequency.NEVER)
 
 
-def test_equal_weight_strategy_allocates_evenly() -> None:
+def test_equal_weight_strategy_allocates_evenly(synthetic_market_csv: Path) -> None:
     market = load_market_data(
-        input_path=FIXTURE_PATH,
+        input_path=synthetic_market_csv,
         start_date=date(1980, 1, 2),
         end_date=date(1980, 1, 2),
     )
@@ -46,9 +42,9 @@ def test_equal_weight_strategy_allocates_evenly() -> None:
         assert abs(value - (1 / 6)) < 1e-9
 
 
-def test_sp500_proxy_uses_metric_proportional_weights() -> None:
+def test_sp500_proxy_uses_metric_proportional_weights(synthetic_market_csv: Path) -> None:
     market = load_market_data(
-        input_path=FIXTURE_PATH,
+        input_path=synthetic_market_csv,
         start_date=date(1980, 1, 2),
         end_date=date(1980, 1, 7),
     )
@@ -58,4 +54,3 @@ def test_sp500_proxy_uses_metric_proportional_weights() -> None:
     assert len(weights) == 3
     assert abs(sum(weights.values()) - 1.0) < 1e-9
     assert all(weight > 0 for weight in weights.values())
-
